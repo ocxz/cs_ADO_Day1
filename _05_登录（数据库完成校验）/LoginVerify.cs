@@ -58,9 +58,14 @@ namespace _05_登录_数据库完成校验_
                 }
                 else
                 {
-                    string sql = "select * from UserInfo where UserName='{0}' ";
-                    sql = MyUtils.FillStr(sql, param[0]);
-                    object result = SqlUtils.ExeQueryCmd(sql);   // 执行 返回查询结果第一行第一列
+                    //string sql = "select * from UserInfo where UserName='{0}' ";
+                    //sql = MyUtils.FillStr(sql, param[0]);
+                    //object result = SqlUtils.ExeQueryCmd(sql);   // 执行 返回查询结果第一行第一列
+
+                    // 解决sql注入
+                    string sql = "select * from UserInfo where UserName=@UserName";
+                    object result = SqlUtils.ExeQueryCmd(sql, param[0]);
+
                     if (result == null)
                     {
                         verifyMsg = "用户名不存在";
@@ -88,10 +93,14 @@ namespace _05_登录_数据库完成校验_
                 }
                 else
                 {
-                    string sql = "select * from UserInfo where UserName='{0}' ";
-                    sql = MyUtils.FillStr(sql, param[0]);
-                    sql = MyUtils.FillStr(sql + "and UserPwd='{0}' ", param[1]);
-                    Object result = SqlUtils.ExeQueryCmd(sql);
+                    //string sql = "select * from UserInfo where UserName='{0}' ";
+                    //sql = MyUtils.FillStr(sql, param[0]);
+                    //sql = MyUtils.FillStr(sql + "and UserPwd='{0}' ", param[1]);
+                    //Object result = SqlUtils.ExeQueryCmd(sql);
+
+                    // 放在sql注入
+                    string sql = "select * from UserInfo where UserName=@UName and UserPwd=@Upwd";
+                    Object result = SqlUtils.ExeQueryCmd(sql, param);
                     if (result == null)
                     {
                         verifyMsg = "用户名或密码不正确";

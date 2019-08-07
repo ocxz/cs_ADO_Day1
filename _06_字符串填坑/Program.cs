@@ -6,10 +6,12 @@ namespace _06_字符串填坑
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
 
-            string str = HanderStr("I {0} {1} {2} you", "love", "fa","fa");
-            Console.WriteLine(str);
+            //string str = HanderStr("I {0} {1} {2} you", "love", "fa","fa");
+            //Console.WriteLine(str);
+
+            // select * from UserInfo where uName=@uName and uPwd=@upwd
+
             Console.ReadKey();
         }
 

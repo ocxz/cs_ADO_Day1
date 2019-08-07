@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.SqlClient;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -29,53 +30,96 @@ namespace _08_数据的导入导出
                     this.txFileName.Text = ofd.FileName;
 
                     // 导入数据
-                    ImportData(txFileName.Text.Trim());
+                    int rows = ImportData2(txFileName.Text.Trim(), true);
+                    MessageBox.Show(string.Format("导入完成，共导入{0}条数据",rows));
                 }
             }
         }
 
         /// <summary>
-        /// 数据导入工作
+        /// 将文本文件导入数据库中
         /// </summary>
-        /// <param name="filePath"></param>
-        private void ImportData(string filePath)
+        /// <param name="filePath">文件路径</param>
+        /// <param name="IsIncludeCol">文件中，是否包含列名</param>
+        /// <returns>返回导入的数据条数</returns>
+        private int ImportData(string filePath,bool IsIncludeCol)
         {
-            // 第一步：拿取文件
-            using (StreamReader reader = new StreamReader(filePath,Encoding.Default))
+            // 分解文本文件，得到数据list
+            List<string[]> rows = MyUtils.AnalysisFile(filePath, 1, ",");
+
+            // 将数据，加入到数据库中
+           
+            if (!IsIncludeCol)   // 判断原文件是否包含列名
             {
-                StringBuilder sqlBuilder = new StringBuilder("insert StudentInfo(");
-
-                // 第一行是，所有列名信息
-                string line = reader.ReadLine();
-                string[] vars = line.Split(',');
-                for (int i = 1; i < vars.Length-1; i++)
-                {
-                    sqlBuilder.Append(vars[i] + ",");
-                }
-                sqlBuilder.Append(vars[vars.Length - 1] + ") values");
-
-
-                // 循环读取
-                while (!string.IsNullOrEmpty(line = reader.ReadLine()))
-                {
-                    // 拆分，组成sql语句  去掉第一列的userId
-                    //Console.WriteLine(line);
-                    sqlBuilder.Append("(");
-                    string[] vars2 = line.Split(',');
-                    for (int i = 1; i < vars2.Length; i++)
-                    {
-                        string temp;
-                        temp = i != vars2.Length-1 ? "'{0}'," : "'{0}'),";
-                        sqlBuilder.Append(string.Format(temp, vars2[i]));
-                    }
-                }
-
-                string sql = sqlBuilder.ToString();
-                sql = sql.Substring(0,sql.LastIndexOf(','));
-
-                int r = SqlUtils.ExeNotQueryCmd(sql);
-                Console.WriteLine("导入完成，影响了{0}行",r);
+                rows.RemoveAt(0);  // 去掉第一行
             }
+
+           return MyUtils.AddDataToSql("province", null, rows);
         }
+
+        private int ImportData2(string filePath,bool IsIncludeCol)
+        {
+            return MyUtils.AddDataToSql("City", null,AnalyFile(filePath,1));
+        }
+
+
+
+        private List<string[]> AnalyFile(string filePath, int row)
+        {
+            List<string[]> rows = new List<string[]>();
+
+            using(StreamReader read = new StreamReader(filePath, Encoding.Default))
+            {
+                for (int i = 0; i < row; i++)
+                {
+                    read.ReadLine();
+                }
+
+                int currow = 0;   // 记录当前都的行数
+                string proName="";   // 记录省名
+                string proId="";   // 记录省的ID
+                string line;   // 记录当前行
+                while (!string.IsNullOrEmpty(line=read.ReadLine()))
+                {
+                    currow++;
+                    if (currow % 2 != 0)   // 如果读的是奇数行，则读到的是省名，记录并结束本次循环
+                    {
+                        proName = line.Trim();
+                        string sql = string.Format("select proid,proName from Province where proName like'%{0}%'",line.Trim());
+
+                        using (SqlDataReader sqlReader = SqlUtils.ExeQuery(sql))
+                        {
+                            while (sqlReader.Read())
+                            {
+                                proName = sqlReader["proName"].ToString();
+                                proId = sqlReader["proid"].ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        string[] citys = line.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+
+                        foreach (string item in citys)
+                        {
+                            rows.Add(new string[] { item, proName,proId });
+                        }
+                    }
+
+                }
+
+
+            }
+
+            return rows;
+        }
+
+
+        private void MianForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+
     }
 }

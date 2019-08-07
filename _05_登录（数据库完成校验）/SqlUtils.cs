@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace _05_登录_数据库完成校验_
 {
@@ -23,8 +24,8 @@ namespace _05_登录_数据库完成校验_
         {
             if (conn == null)
             {
-                string connStr = ConfigurationManager.ConnectionStrings["SqlConn"].ConnectionString;
-                //string connStr = "server=.\\SQLEXPRESS;uid=sa;pwd=980421cxz;database=dbTest4";
+                //string connStr = ConfigurationManager.ConnectionStrings["SqlConn"].ConnectionString;
+                string connStr = "server=.\\SQLEXPRESS;uid=sa;pwd=980421cxz;database=dbTest4";
                 conn = new SqlConnection(connStr);
                 conn.Open();
             }
@@ -88,8 +89,6 @@ namespace _05_登录_数据库完成校验_
 
         #endregion
 
-        #region MyRegion
-
         #region 5、ExeQueryCmd(string sql)执行查询语句，返回查询到的第一行第一列的数据
 
         /// <summary>
@@ -102,8 +101,30 @@ namespace _05_登录_数据库完成校验_
             SqlCommand cmd = GetCommand();
             cmd.CommandText = sql;
             return cmd.ExecuteScalar();
-        } 
+        }
         #endregion
+
+        #region 6、ExeQueryCmd(string sql, params string[] pars) 执行sql查询语句，防止sql注入，返回查询到的第一行第一列的数据
+
+        /// <summary>
+        /// ExecuteCmd(string sql, params string[] pars) 执行sql查询语句，防止sql注入，返回查询到的第一行第一列的数据
+        /// </summary>
+        /// <param name="sql">需要进行sql注入的sql语句</param>
+        /// <param name="pars">传入的参数</param>
+        /// <returns>返回查询的结果值</returns>
+        public static object ExeQueryCmd(string sql, params string[] pars)
+        {
+            SqlCommand cmd = GetCommand();
+            cmd.CommandText = sql;
+            MatchCollection mr = Regex.Matches(sql,@"@\w+");   // 获得所有匹配到的匹配项，即要参数key
+            cmd.Parameters.Clear();   // 清空cmd参数列表
+            for (int i = 0; i < pars.Length; i++)
+            {  
+                cmd.Parameters.AddWithValue(mr[i].ToString(), pars[i]);   // 给参数列表添加值
+            }
+            return cmd.ExecuteScalar();   // 执行sql语句
+        }
+
 
         #endregion
 

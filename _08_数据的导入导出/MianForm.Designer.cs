@@ -58,6 +58,7 @@
             this.Controls.Add(this.txFileName);
             this.Name = "MianForm";
             this.Text = "Form1";
+            this.Load += new System.EventHandler(this.MianForm_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

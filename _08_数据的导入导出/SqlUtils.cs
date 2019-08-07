@@ -52,7 +52,7 @@ namespace _08_数据的导入导出
 
         #endregion
 
-        #region 3、ExecuteCmd(string sql)执行Sql语句，返回影响的行数
+        #region 3、ExeNotQueryCmd(string sql)执行Sql语句，返回影响的行数
         /// <summary>
         /// 执行Sql语句，返回影响的行数
         /// </summary>
@@ -88,8 +88,6 @@ namespace _08_数据的导入导出
 
         #endregion
 
-        #region MyRegion
-
         #region 5、ExeQueryCmd(string sql)执行查询语句，返回查询到的第一行第一列的数据
 
         /// <summary>
@@ -102,10 +100,27 @@ namespace _08_数据的导入导出
             SqlCommand cmd = GetCommand();
             cmd.CommandText = sql;
             return cmd.ExecuteScalar();
+        }
+        #endregion
+
+        #region 6、ExeQuery(string sql) 执行查询语句，返回查询结果
+        /// <summary>
+        /// 执行查询语句，返回查询到的结果
+        /// </summary>
+        /// <param name="sql">执行的sql语句</param>
+        /// <returns>返回执行的结果</returns>
+        public static SqlDataReader ExeQuery(string sql)
+        {
+            SqlCommand cmd = GetCommand();
+            cmd.CommandText = sql;
+            return cmd.ExecuteReader();
         } 
         #endregion
 
-        #endregion
+
+
+
+
 
     }
 }
